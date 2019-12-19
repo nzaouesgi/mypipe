@@ -13,7 +13,7 @@ fn main() {
             .short("i")
             .long("in")
             .value_name("Input command")
-            .help("The input command. Its output will be redirected to the --out command's stdin.")
+            .help("The input command.")
             .required(true)
             .takes_value(true),
 
@@ -22,7 +22,7 @@ fn main() {
             .short("o")
             .long("out")
             .value_name("Output command")
-            .help("The command that will execute and read the redirected output.")
+            .help("The output command. Takes --out command stdout as stdin.")
             .required(true)
             .takes_value(true)
     ];
@@ -56,11 +56,14 @@ fn main() {
         .expect("Failed to spawn IN process.");
 
     //get output from second process
-    Command::new(out_command)
+    let mut out_process = Command::new(out_command)
         .stdin(in_process.stdout.unwrap())
 	.stdout(Stdio::inherit())
 	.stderr(Stdio::inherit())
-        .output()
+        .spawn()
         .expect("Failed to get OUT process's output.");
+
+    // wait until process terminates
+    out_process.wait().expect("Failed to get process's status.");
 }
 
