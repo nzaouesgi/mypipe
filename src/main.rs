@@ -47,7 +47,7 @@ fn main() {
         .value_of("out")
         .unwrap();
 
-    //spawn first process
+    // spawn first process	
     let in_process = Command::new(in_command)
 	.stdin(Stdio::null())
         .stdout(Stdio::piped())
@@ -55,7 +55,8 @@ fn main() {
         .spawn()
         .expect("Failed to spawn IN process.");
 
-    //get output from second process
+    // spawn second process
+    // stdout and stderr are inherited explicitly from main parent process
     let mut out_process = Command::new(out_command)
         .stdin(in_process.stdout.unwrap())
 	.stdout(Stdio::inherit())
@@ -63,7 +64,7 @@ fn main() {
         .spawn()
         .expect("Failed to get OUT process's output.");
 
-    // wait until process terminates
+    // wait until output process terminates
     out_process.wait().expect("Failed to get process's status.");
 }
 
