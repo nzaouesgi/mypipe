@@ -1,7 +1,6 @@
 extern crate clap;
 
 use clap::{Arg, App};
-use std::io::Write;
 use std::process::{Command, Stdio};
 
 fn main() {
@@ -32,7 +31,7 @@ fn main() {
     let app: App = App::new("myPipe")
         .version("1.0")
         .author("N'zaou Renaud (nzaou.renaud@live.fr)")
-        .about("Pipe --in command to --out command (no argumentss support)")
+        .about("Pipe --in command to --out command (no arguments support)")
         .args(&args);
 
     // parse command line arguments
@@ -50,26 +49,16 @@ fn main() {
 
     // get output from first process.
     let in_process = Command::new(in_command)
-        .stdin(Stdio::null())
         .stdout(Stdio::piped())
-        .stderr(Stdio::null())
-        .output()
-        .expect("Failed to get IN process output");
+        .spawn()
+        .expect("Failed to spawn IN process.");
 
     // spawn second process
-    let mut out_process = Command::new(out_command)
-        .stdin(Stdio::piped())
-        .stderr(Stdio::inherit())
-        .stdout(Stdio::inherit())
-        .spawn()
-        .expect("Failed to spawn OUT process");
+    let out_process = Command::new(out_command)
+        .stdin(in_process.stdout.unwrap())
+        .output()
+        .expect("Failed to get OUT process's output.");
 
-    // write first process output into second process's standard input.
-    let stdin = out_process.stdin.as_mut().expect("Failed to open stdin");
-    stdin.write_all(&in_process.stdout).expect("Failed to write to stdin");
-    
-    stdin.flush().expect("Failed to flush stdin");
-
-    out_process.wait().expect("Failed to wait for process");
+    println!("{}", String::from_utf8_lossy(&out_process.stdout));
 }
 
