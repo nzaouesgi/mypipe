@@ -47,18 +47,20 @@ fn main() {
         .value_of("out")
         .unwrap();
 
-    // get output from first process.
+    //spawn first process
     let in_process = Command::new(in_command)
+	.stdin(Stdio::null())
         .stdout(Stdio::piped())
+	.stderr(Stdio::inherit())
         .spawn()
         .expect("Failed to spawn IN process.");
 
-    // spawn second process
-    let out_process = Command::new(out_command)
+    //get output from second process
+    Command::new(out_command)
         .stdin(in_process.stdout.unwrap())
+	.stdout(Stdio::inherit())
+	.stderr(Stdio::inherit())
         .output()
         .expect("Failed to get OUT process's output.");
-
-    println!("{}", String::from_utf8_lossy(&out_process.stdout));
 }
 
